@@ -18,8 +18,6 @@ set clk_period $PERIOD
 
 set_app_var search_path "../../core/fpu/src/common_cells/include/ $search_path"
 
-report_lib > ${DCRM_CHECK_LIBRARY_REPORT}
-
 sh rm -rf work
 sh mkdir work
 define_design_lib ariane_lib -path work
@@ -48,15 +46,15 @@ change_name -rule verilog -hier
 set_fix_multiple_port_nets -all -buffer_constants
 
 #constraint the timing to and from the sram black boxes
-set_input_delay -clock main_clk -max 3.8 i_cache_subsystem/i_wt_dcache/i_wt_dcache_mem/gen_tag_srams_*__i_tag_sram/gen_cut_*__gen_mem_i_ram/rddata_do[*]
-set_input_delay -clock main_clk -max 3.8 i_cache_subsystem/i_wt_dcache/i_wt_dcache_mem/gen_data_banks_*__i_data_sram/gen_cut_*__gen_mem_i_ram/rddata_do[*]
-set_input_delay -clock main_clk -max 3.8 i_cache_subsystem/i_cva6_icache/gen_sram_*__data_sram/gen_cut_*__gen_mem_i_ram/rddata_do[*]
-set_input_delay -clock main_clk -max 3.8 i_cache_subsystem/i_cva6_icache/gen_sram_*__tag_sram/gen_cut_*__gen_mem_i_ram/rddata_do[*]
+set_input_delay -clock main_clk -max 0.46 i_cache_subsystem/i_wt_dcache/i_wt_dcache_mem/gen_tag_srams_*__i_tag_sram/gen_cut_*__gen_mem_i_ram/rddata_do[*]
+set_input_delay -clock main_clk -max 0.46 i_cache_subsystem/i_wt_dcache/i_wt_dcache_mem/gen_data_banks_*__i_data_sram/gen_cut_*__gen_mem_i_ram/rddata_do[*]
+set_input_delay -clock main_clk -max 0.46 i_cache_subsystem/i_cva6_icache/gen_sram_*__data_sram/gen_cut_*__gen_mem_i_ram/rddata_do[*]
+set_input_delay -clock main_clk -max 0.46 i_cache_subsystem/i_cva6_icache/gen_sram_*__tag_sram/gen_cut_*__gen_mem_i_ram/rddata_do[*]
 
-set_output_delay 0.1 -max -clock main_clk i_cache_subsystem/i_wt_dcache/i_wt_dcache_mem/gen_tag_srams_*__i_tag_sram/addr_i[*]
-set_output_delay 0.1 -max -clock main_clk i_cache_subsystem/i_wt_dcache/i_wt_dcache_mem/gen_data_banks_*__i_data_sram/addr_i[*]
-set_output_delay 0.1 -max -clock main_clk i_cache_subsystem/i_cva6_icache/gen_sram_*__data_sram/addr_i[*]
-set_output_delay 0.1 -max -clock main_clk i_cache_subsystem/i_cva6_icache/gen_sram_*__tag_sram/addr_i[*]
+set_output_delay 0.11 -max -clock main_clk i_cache_subsystem/i_wt_dcache/i_wt_dcache_mem/gen_tag_srams_*__i_tag_sram/addr_i[*]
+set_output_delay 0.11 -max -clock main_clk i_cache_subsystem/i_wt_dcache/i_wt_dcache_mem/gen_data_banks_*__i_data_sram/addr_i[*]
+set_output_delay 0.11 -max -clock main_clk i_cache_subsystem/i_cva6_icache/gen_sram_*__data_sram/addr_i[*]
+set_output_delay 0.11 -max -clock main_clk i_cache_subsystem/i_cva6_icache/gen_sram_*__tag_sram/addr_i[*]
 
 # Check the current design for consistency
 check_design -summary > ${DCRM_CHECK_DESIGN_REPORT}

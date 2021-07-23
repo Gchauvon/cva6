@@ -10,16 +10,16 @@
 #
 
 DESIGN_NAME           = ariane
-TECH_NAME             = synopsys-bitcoin_v1.1
 PERIOD               ?= 17
 FOUNDRY_PATH         ?= /shares/common/tools/techno/synopsys/bitcoin_v1.1_lib/lib/stdcell_rvt/db_nldm/
-TARGET_LIBRARY_FILES ?= saed32rvt_tt1p05v25c.db
+TECH_NAME            ?= saed32rvt_tt1p05v25c
+TARGET_LIBRARY_FILES  = $(TECH_NAME).db
 DC_SHELL_PATH         = /opt/synopsys/syn/Q-2019.12/bin/
 
 EXPORT_LIST=SNPSLMD_QUEUE=TRUE TECH_NAME=$(TECH_NAME) DESIGN_NAME=$(DESIGN_NAME) TERM=vt100 PERIOD=$(PERIOD) FOUNDRY_PATH=$(FOUNDRY_PATH) TARGET_LIBRARY_FILES=$(TARGET_LIBRARY_FILES)
 
 pre_cva6_synth:
-	grep "CVA6_REPO_DIR" ../../core/Flist.cv64a6_imafdc_sv39|grep -v "incdir"|grep -v "SyncSpRamBeNx64" > Flist.cva6_synth
+	grep "CVA6_REPO_DIR\}" ../../core/Flist.cv64a6_imafdc_sv39|grep -v "instr_tracer"|grep -v "incdir"|grep -v "SyncSpRamBeNx64" > Flist.cva6_synth
 	sed -i "s/^/analyze -f sverilog -define WT_DCACHE -lib ariane_lib /" Flist.cva6_synth
 	echo "analyze -f sverilog -define WT_DCACHE -lib ariane_lib SyncSpRamBeNx64.sv" >> Flist.cva6_synth
 
