@@ -84,6 +84,7 @@ ariane_pkg += core/include/riscv_pkg.sv                              \
               core/include/ariane_rvfi_pkg.sv                        \
               core/include/std_cache_pkg.sv                          \
               core/include/wt_cache_pkg.sv                           \
+              core/include/cvxif_pkg.sv                              \
               corev_apu/axi/src/axi_pkg.sv                           \
               corev_apu/register_interface/src/reg_intf.sv           \
               corev_apu/register_interface/src/reg_intf_pkg.sv       \
@@ -243,6 +244,7 @@ fpga_src := $(addprefix $(root-dir), $(fpga_src))
 
 # look for testbenches
 tbs := corev_apu/tb/ariane_tb.sv corev_apu/tb/ariane_testharness.sv
+tbs := $(addprefix $(root-dir), $(tbs))
 # RISCV asm tests and benchmark setup (used for CI)
 # there is a definesd test-list with selected CI tests
 riscv-test-dir            := tmp/riscv-tests/build/isa/
@@ -303,16 +305,18 @@ else
 endif
 
 vcs_build: $(dpi-library)/ariane_dpi.so
-	vlogan -full64 -nc -sverilog -ntb_opts uvm-1.2
-	vlogan -full64 -nc -sverilog -ntb_opts uvm-1.2 +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(ariane_pkg)) +incdir+core/include/+$(VCS_HOME)/etc/uvm-1.2/dpi
-	vlogan -full64 -nc -sverilog -ntb_opts uvm-1.2 +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(util)) +incdir+common/local/util+core/include/+src/util/+$(VCS_HOME)/etc/uvm-1.2/dpi
-	vhdlan -full64 $(filter %.vhd,$(uart_src))
-	vlogan -full64 -nc -sverilog -ntb_opts uvm-1.2 -assert svaext +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(src)) +incdir+core/include/+common/submodules/common_cells/include/+common/local/util/+$(VCS_HOME)/etc/uvm-1.2/dpi
-	vlogan -full64 -nc -sverilog -ntb_opts uvm-1.2 $(tbs) +define+RVFI_TRACE
-	vcs -full64 -timescale=1ns/1ns -ntb_opts uvm-1.2 work.ariane_tb
+	mkdir -p vcs_result
+	cd vcs_result &&\
+	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 &&\
+	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(ariane_pkg)) +incdir+core/include/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
+	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(util)) +incdir+../common/local/util+../core/include/+src/util/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
+	vhdlan -kdb -full64 -nc $(filter %.vhd,$(uart_src)) &&\
+	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 -assert svaext +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(src)) +incdir+../core/include/+../common/submodules/common_cells/include/+../common/local/util/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
+	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 $(tbs) +define+RVFI_TRACE &&\
+	vcs -kdb -debug_access+all -lca -full64 -timescale=1ns/1ns -ntb_opts uvm-1.2 work.ariane_tb
 
 vcs: vcs_build
-	./simv +permissive -sv_lib work-dpi/ariane_dpi +permissive-off ++$(elf-bin) | tee vcs.log
+	cd vcs_result && ./simv  -verdi +permissive -sv_lib ../work-dpi/ariane_dpi +permissive-off ++$(elf-bin) | tee vcs.log
 
 # Build the TB and module using QuestaSim
 build: $(library) $(library)/.build-srcs $(library)/.build-tb $(dpi-library)/ariane_dpi.so
