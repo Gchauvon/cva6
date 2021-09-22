@@ -94,7 +94,9 @@ ariane_pkg += core/include/riscv_pkg.sv                              \
               corev_apu/tb/ariane_axi_soc_pkg.sv                     \
               core/include/ariane_axi_pkg.sv                         \
               core/fpu/src/fpnew_pkg.sv                              \
-              core/fpu/src/fpu_div_sqrt_mvp/hdl/defs_div_sqrt_mvp.sv
+              core/fpu/src/fpu_div_sqrt_mvp/hdl/defs_div_sqrt_mvp.sv \
+              common/submodules/common_cells/src/cf_math_pkg.sv
+
 ariane_pkg := $(addprefix $(root-dir), $(ariane_pkg))
 
 # utility modules
@@ -195,6 +197,7 @@ src :=  $(filter-out core/ariane_regfile.sv, $(wildcard core/*.sv))             
         corev_apu/axi/src/axi_delayer.sv                                             \
         corev_apu/axi/src/axi_to_axi_lite.sv                                         \
         corev_apu/fpga-support/rtl/SyncSpRamBeNx64.sv                                \
+        corev_apu/fpga-support/rtl/SyncSpRam.sv                                      \
         common/submodules/common_cells/src/unread.sv                                 \
         common/submodules/common_cells/src/sync.sv                                   \
         common/submodules/common_cells/src/cdc_2phase.sv                             \
@@ -217,6 +220,8 @@ src :=  $(filter-out core/ariane_regfile.sv, $(wildcard core/*.sv))             
         common/submodules/common_cells/src/delta_counter.sv                          \
         common/submodules/common_cells/src/counter.sv                                \
         common/submodules/common_cells/src/shift_reg.sv                              \
+        common/submodules/common_cells/src/stream_fifo.sv                            \
+        common/submodules/common_cells/src/spill_register_flushable.sv               \
         corev_apu/src/tech_cells_generic/src/pulp_clock_gating.sv                    \
         corev_apu/src/tech_cells_generic/src/cluster_clock_inverter.sv               \
         corev_apu/src/tech_cells_generic/src/pulp_clock_mux2.sv                      \
@@ -235,6 +240,12 @@ else
 endif
 
 src := $(addprefix $(root-dir), $(src))
+
+copro_pkg := corev_apu/cvxif_example/include/instruction_pkg.sv
+copro_pkg := $(addprefix $(root-dir), $(copro_pkg))
+
+copro_src := $(wildcard corev_apu/cvxif_example/*.sv)
+copro_src := $(addprefix $(root-dir), $(copro_src))
 
 uart_src := $(wildcard corev_apu/fpga/src/apb_uart/src/*.vhd)
 uart_src := $(addprefix $(root-dir), $(uart_src))
@@ -303,16 +314,17 @@ ifdef rbb
 else
 	questa-cmd += +jtag_rbb_enable=0
 endif
-
 vcs_build: $(dpi-library)/ariane_dpi.so
 	mkdir -p vcs_result
 	cd vcs_result &&\
 	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 &&\
-	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(ariane_pkg)) +incdir+core/include/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
+	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 +define+WT_CACHE +define+RVFI_TRACE +define+CVXIF $(filter %.sv,$(ariane_pkg)) +incdir+core/include/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
 	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(util)) +incdir+../common/local/util+../core/include/+src/util/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
 	vhdlan -kdb -full64 -nc $(filter %.vhd,$(uart_src)) &&\
-	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 -assert svaext +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(src)) +incdir+../core/include/+../common/submodules/common_cells/include/+../common/local/util/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
-	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 $(tbs) +define+RVFI_TRACE &&\
+	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 $(filter %.sv,$(copro_pkg)) &&\
+	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 $(filter %.sv,$(copro_src)) &&\
+	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 -assert svaext +define+WT_CACHE +define+RVFI_TRACE +define+CVXIF $(filter %.sv,$(src)) +incdir+../core/include/+../common/submodules/common_cells/include/+../common/local/util/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
+	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 $(tbs) +define+RVFI_TRACE +define+CVXIF &&\
 	vcs -kdb -debug_access+all -lca -full64 -timescale=1ns/1ns -ntb_opts uvm-1.2 work.ariane_tb
 
 vcs: vcs_build
@@ -750,11 +762,13 @@ fpga_filter += $(addprefix $(root-dir), src/util/instr_trace_item.sv)
 fpga_filter += $(addprefix $(root-dir), common/local/util/instr_tracer_if.sv)
 fpga_filter += $(addprefix $(root-dir), common/local/util/instr_tracer.sv)
 
-fpga: $(ariane_pkg) $(util) $(src) $(fpga_src) $(uart_src)
+fpga: $(ariane_pkg) $(util) $(src) $(fpga_src) $(uart_src) $(copro_pkg) $(copro_src)
 	@echo "[FPGA] Generate sources"
 	@echo read_vhdl        {$(uart_src)}    > corev_apu/fpga/scripts/add_sources.tcl
 	@echo read_verilog -sv {$(ariane_pkg)} >> corev_apu/fpga/scripts/add_sources.tcl
 	@echo read_verilog -sv {$(filter-out $(fpga_filter), $(util))}     >> corev_apu/fpga/scripts/add_sources.tcl
+	@echo read_verilog -sv {$(filter-out $(fpga_filter), $(copro_pkg))} >> corev_apu/fpga/scripts/add_sources.tcl
+	@echo read_verilog -sv {$(filter-out $(fpga_filter), $(copro_src))} >> corev_apu/fpga/scripts/add_sources.tcl
 	@echo read_verilog -sv {$(filter-out $(fpga_filter), $(src))} 	   >> corev_apu/fpga/scripts/add_sources.tcl
 	@echo read_verilog -sv {$(fpga_src)}   >> corev_apu/fpga/scripts/add_sources.tcl
 	@echo "[FPGA] Generate Bitstream"
