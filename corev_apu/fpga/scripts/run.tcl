@@ -71,6 +71,10 @@ synth_design -rtl -name rtl_1
 
 set_property STEPS.SYNTH_DESIGN.ARGS.RETIMING true [get_runs synth_1]
 
+# uncomment this to save the project before synthesis and implementation so it can be opened in GUI mode 
+#save_project_as ariane_debug
+#exit 1
+
 launch_runs synth_1
 wait_on_run synth_1
 open_run synth_1
