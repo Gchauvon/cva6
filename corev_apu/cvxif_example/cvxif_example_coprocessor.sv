@@ -55,14 +55,22 @@ module cvxif_example_coprocessor import cvxif_pkg::*;
   );
   
  logic fifo_valid;
+ logic x_issue_ready_q;
  logic instr_push, instr_pop;
   x_issue_req_t  req;
 
 
   assign instr_push = x_issue_resp_o.accept ? 1 : 0 ;
   assign instr_pop = (x_commit_i.x_commit_kill && x_commit_valid_i) || x_result_valid_o;
-  assign x_issue_ready_o = ~fifo_valid; 
-
+  assign x_issue_ready_q = ~fifo_valid; // if something is in the fifo, the instruction is being processed
+                                        // so we can't receive anything else
+always_ff @(posedge clk_i or negedge rst_ni) begin : regs
+    if(!rst_ni) begin
+      x_issue_ready_o <= 1;
+    end else begin
+      x_issue_ready_o <= x_issue_ready_q;
+    end
+  end
 
   stream_fifo #(
       .FALL_THROUGH  (1), //data_o ready and pop in the same cycle
