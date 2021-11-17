@@ -722,8 +722,8 @@ module ariane_testharness #(
 
 `ifdef CVXIF
   cvxif_example_coprocessor i_cvxif_coprocessor (
-    .clk_i                ( tb_clk                         ),
-    .rst_ni               ( tb_rstn                        ),
+    .clk_i                ( clk_i                          ),
+    .rst_ni               ( ndmreset_n                     ),
     .cvxif_req_i          ( cvxif_req                      ),
     .cvxif_resp_o         ( cvxif_resp                     )
   );

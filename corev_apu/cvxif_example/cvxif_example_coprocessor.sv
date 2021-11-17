@@ -123,7 +123,7 @@ always_ff @(posedge clk_i or negedge rst_ni) begin : regs
     .clk_i      ( clk_i),
     .rst_ni     ( rst_ni),
     .clear_i    ( ~x_commit_i.x_commit_kill && x_commit_valid_i),
-    .en_i       ( 1),
+    .en_i       ( 1'b1),
     .load_i     ( ),
     .down_i     ( ),
     .d_i        ( ),
