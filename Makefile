@@ -317,18 +317,18 @@ endif
 vcs_build: $(dpi-library)/ariane_dpi.so
 	mkdir -p vcs_result
 	cd vcs_result &&\
-	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 &&\
-	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 +define+WT_CACHE +define+RVFI_TRACE +define+CVXIF $(filter %.sv,$(ariane_pkg)) +incdir+core/include/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
-	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(util)) +incdir+../common/local/util+../core/include/+src/util/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
-	vhdlan -kdb -full64 -nc $(filter %.vhd,$(uart_src)) &&\
-	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 $(filter %.sv,$(copro_pkg)) &&\
-	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 $(filter %.sv,$(copro_src)) &&\
-	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 -assert svaext +define+WT_CACHE +define+RVFI_TRACE +define+CVXIF $(filter %.sv,$(src)) +incdir+../core/include/+../common/submodules/common_cells/include/+../common/local/util/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
-	vlogan -kdb -full64 -nc -sverilog -ntb_opts uvm-1.2 $(tbs) +define+RVFI_TRACE +define+CVXIF &&\
-	vcs -kdb -debug_access+all -lca -full64 -timescale=1ns/1ns -ntb_opts uvm-1.2 work.ariane_tb
+	vlogan $(if $(VERDI), -kdb,) -full64 -nc -sverilog -ntb_opts uvm-1.2 &&\
+	vlogan $(if $(VERDI), -kdb,) -full64 -nc -sverilog -ntb_opts uvm-1.2 +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(ariane_pkg)) +incdir+core/include/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
+	vlogan $(if $(VERDI), -kdb,) -full64 -nc -sverilog -ntb_opts uvm-1.2 +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(util)) +incdir+../common/local/util+../core/include/+src/util/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
+	vhdlan $(if $(VERDI), -kdb,) -full64 -nc $(filter %.vhd,$(uart_src)) &&\
+	vlogan $(if $(VERDI), -kdb,) -full64 -nc -sverilog -ntb_opts uvm-1.2 $(filter %.sv,$(copro_pkg)) &&\
+	vlogan $(if $(VERDI), -kdb,) -full64 -nc -sverilog -ntb_opts uvm-1.2 $(filter %.sv,$(copro_src)) &&\
+	vlogan $(if $(VERDI), -kdb,) -full64 -nc -sverilog -ntb_opts uvm-1.2 -assert svaext +define+WT_CACHE +define+RVFI_TRACE $(filter %.sv,$(src)) +incdir+../core/include/+../common/submodules/common_cells/include/+../common/local/util/+$(VCS_HOME)/etc/uvm-1.2/dpi &&\
+	vlogan $(if $(VERDI), -kdb,) -full64 -nc -sverilog -ntb_opts uvm-1.2 $(tbs) +define+RVFI_TRACE &&\
+	vcs $(if $(VERDI), -kdb -debug_access+all -lca,) -full64 -timescale=1ns/1ns -ntb_opts uvm-1.2 work.ariane_tb
 
 vcs: vcs_build
-	cd vcs_result && ./simv  -verdi +permissive -sv_lib ../work-dpi/ariane_dpi +permissive-off ++$(elf-bin) | tee vcs.log
+	cd vcs_result && ./simv  $(if $(VERDI), -verdi,) +permissive -sv_lib ../work-dpi/ariane_dpi +permissive-off ++$(elf-bin) | tee vcs.log
 
 # Build the TB and module using QuestaSim
 build: $(library) $(library)/.build-srcs $(library)/.build-tb $(dpi-library)/ariane_dpi.so
