@@ -47,7 +47,7 @@ module ariane_tb;
 
     ariane_testharness #(
         .NUM_WORDS         ( NUM_WORDS ),
-        .InclSimDTM        ( 1'b1      ),
+        .InclSimDTM        ( 1'b0      ),
         .StallRandomOutput ( 1'b1      ),
         .StallRandomInput  ( 1'b1      )
     ) dut (
@@ -124,7 +124,6 @@ module ariane_tb;
         longint address, len;
         byte buffer[];
         void'(uvcl.get_arg_value("+PRELOAD=", binary));
-
         if (binary != "") begin
             `uvm_info( "Core Test", $sformatf("Preloading ELF: %s", binary), UVM_LOW)
 
