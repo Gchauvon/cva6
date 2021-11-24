@@ -136,7 +136,7 @@ always_ff @(posedge clk_i or negedge rst_ni) begin : regs
     x_result_o.id       = req.id;
     x_result_o.data     = req.rs[0] + req.rs[1] + req.rs[2];
     x_result_o.rd       = 17;
-    x_result_o.we       = 0;
+    x_result_o.we       = 1;
     x_result_o.exc      = 0;
     x_result_o.exccode  = 0;
   end

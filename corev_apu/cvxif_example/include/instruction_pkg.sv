@@ -19,8 +19,8 @@ typedef struct packed {
 parameter int unsigned NumInstr = 2;
 parameter copro_issue_resp_t OffloadInstr[NumInstr] = '{
   '{
-    instr: 32'b 00000_00_00000_00000_0_00_00000_0101011,
-    mask: 32'b 00000_00_00000_00000_0_00_00000_1111111,
+    instr: 32'b 00000_00_00000_00000_0_00_00000_0101011, // custom1 opcode
+    mask:  32'b 00000_00_00000_00000_0_00_00000_1111111,
     resp : '{
       accept : 1'b1,
       writeback : 1'b0,
@@ -31,8 +31,8 @@ parameter copro_issue_resp_t OffloadInstr[NumInstr] = '{
    }
   },
   '{
-    instr: 32'b 00000_00_00000_00000_0_00_00000_1011011,
-    mask: 32'b 00000_00_00000_00000_0_00_00000_1111111,
+    instr: 32'b 00000_00_00000_00000_0_00_00000_1011011, // custom2 opcode
+    mask:  32'b 00000_00_00000_00000_0_00_00000_1111111,
     resp : '{
       accept : 1'b1,
       writeback : 1'b1,
