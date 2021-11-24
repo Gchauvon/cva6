@@ -146,7 +146,7 @@ module ariane import ariane_pkg::*; #(
   riscv::xlen_t             cvxif_result_ex_id;
   logic                     cvxif_valid_ex_id;
   exception_t               cvxif_exception_ex_id;
-  logic[4:0]                cvxif_rd_ex_id;
+  logic                     cvxif_rd_ex_id;
   logic                     x_issue_valid_id_cvxif;
   logic                     x_issue_ready_cvxif_id;
   cvxif_pkg::x_issue_req_t  x_issue_req_id_cvxif;
@@ -736,7 +736,7 @@ module ariane import ariane_pkg::*; #(
   // CoreV-X-Interface
   // -------------------
   // CVXIF result combinatorial. Instruction is ILLEGAL_INSTR if it is not accept by the coprocessor
-  assign  cvxif_req_o.x_result_ready     = 1;
+  assign cvxif_req_o.x_result_ready = 1;
   always_comb begin
     if (~cvxif_resp_i.x_issue_resp.accept && cvxif_req_o.x_issue_valid && cvxif_resp_i.x_issue_ready) begin
       cvxif_trans_id_ex_id          = cvxif_req_o.x_issue_req.id;
@@ -745,7 +745,7 @@ module ariane import ariane_pkg::*; #(
       cvxif_exception_ex_id.cause   = riscv::ILLEGAL_INSTR;
       cvxif_exception_ex_id.valid   = 1;
       cvxif_exception_ex_id.tval    = cvxif_req_o.x_issue_req.instr;
-      cvxif_rd_ex_id                = 0;
+      cvxif_rd_ex_id                = '0;
     end
     else begin
       cvxif_trans_id_ex_id          = cvxif_resp_i.x_result.id;
@@ -753,8 +753,8 @@ module ariane import ariane_pkg::*; #(
       cvxif_valid_ex_id             = cvxif_resp_i.x_result_valid;
       cvxif_exception_ex_id.cause   = cvxif_resp_i.x_result.exccode;
       cvxif_exception_ex_id.valid   = cvxif_resp_i.x_result.exc;
-      cvxif_exception_ex_id.tval    = 0;
-      cvxif_rd_ex_id                = cvxif_resp_i.x_result.rd;
+      cvxif_exception_ex_id.tval    = '0;
+      cvxif_rd_ex_id                = cvxif_resp_i.x_result.we ? '1 : '0;
     end
   end
   assign  x_issue_ready_cvxif_id         = cvxif_resp_i.x_issue_ready;
